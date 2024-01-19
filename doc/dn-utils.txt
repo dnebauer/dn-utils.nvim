@@ -277,7 +277,7 @@ dn_utils.match_count({haystack}, {needle})
         {needle}    (string)  Substring to search for
 
     Returns: ~
-        (number)  Number of occurrences found
+        (integer)  Number of occurrences found
 
 
 dn_utils.menu_select({menu}, {prompt})                    *dn_utils.menu_select*
@@ -342,8 +342,8 @@ dn_utils.pad_internal({str}, {start}, {finish}, {char})
 
     Parameters: ~
         {str}     (string)      String to be padded
-        {start}   (number)      Integer position in string to pad from
-        {finish}  (number)      Integer position in string to pad to
+        {start}   (integer)     Position in string to pad from
+        {finish}  (integer)     Position in string to pad to
         {char}    (string|nil)  Single character to pad with
 
     Returns: ~
@@ -499,7 +499,7 @@ dn_utils.sleep({sec})                                           *dn_utils.sleep*
     Pause script for a specified number of seconds.
 
     Parameters: ~
-        {sec}  (number)  Number of seconds to pause script execution
+        {sec}  (integer)  Number of seconds to pause script execution
 
     Returns: ~
         (nil)  No return value
@@ -560,11 +560,11 @@ dn_utils.table_print({tbl}, {count}, {pad})
     Print prettified table to console.
 
     Parameters: ~
-        {tbl}    (table)       Table to convert to a string
-        {count}  (number|nil)  Number of pads between string tokens
-                               (default=1)
-        {pad}    (string|nil)  String to use for indenting and padding
-                               (default=<Tab>)
+        {tbl}    (table)        Table to convert to a string
+        {count}  (integer|nil)  Number of pads between string tokens
+                                (default=1)
+        {pad}    (string|nil)   String to use for indenting and padding
+                                (default=<Tab>)
 
 
                                          *dn_utils.table_remove_empty_end_items*
@@ -590,7 +590,7 @@ dn_utils.table_size({tbl})                                 *dn_utils.table_size*
         {tbl}  (table)  Table to analyse
 
     Returns: ~
-        (number)  Integer size of table
+        (integer)  Size of table
 
 
                                                       *dn_utils.table_stringify*
@@ -598,11 +598,11 @@ dn_utils.table_stringify({tbl}, {count}, {pad})
     Convert table to a prettified string.
 
     Parameters: ~
-        {tbl}    (table)       Table to convert to a string
-        {count}  (number|nil)  Number of pads between string tokens
-                               (default=1)
-        {pad}    (string|nil)  String to use for indenting and padding
-                               (default=<Tab>)
+        {tbl}    (table)        Table to convert to a string
+        {count}  (integer|nil)  Number of pads between string tokens
+                                (default=1)
+        {pad}    (string|nil)   String to use for indenting and padding
+                                (default=<Tab>)
 
     Returns: ~
         (string)  Pretty printed table
