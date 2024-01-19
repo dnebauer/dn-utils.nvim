@@ -420,7 +420,7 @@ end
 ---(https://docs.python.org/3/library/tkinter.html).
 ---@param prompt string Menu prompt
 ---@param options table Sequence containing menu options
----@return number|nil _ Option number
+---@return integer|nil _ Option number
 function _menu_ui_select(prompt, options)
 	-- do not use inputlist if:
 	-- • number of options > 20 : dressing.vim limits inputlist height to 20 in
@@ -451,7 +451,7 @@ end
 ---This function uses vim's inbuilt |inputlist()| to invoke a menu.
 ---@param prompt string Menu prompt
 ---@param options table Sequence containing menu options
----@return number|nil _ Option number
+---@return integer|nil _ Option number
 function _menu_ui_select_inputlist(prompt, options)
 	local choices = { prompt }
 	for i, option in ipairs(options) do
@@ -481,7 +481,7 @@ end
 ---gui menu.
 ---@param prompt string Menu prompt
 ---@param options table Sequence containing menu options
----@return number|nil _ Option number
+---@return integer|nil _ Option number
 function _menu_ui_select_pythontk(prompt, options)
 	-- python script to invoke gui menu
 	local python_code = [[
@@ -664,8 +664,8 @@ end
 ---@private
 ---Engine function converting table contents to a prettified string.
 ---@param tbl table Table to convert to a string
----@param count number|nil Number of pads between string tokens (default=0)
----@param indent number|nil Number of pads to indent each table level (default=0)
+---@param count integer|nil Number of pads between string tokens (default=0)
+---@param indent integer|nil Number of pads to indent each table level (default=0)
 ---@param pad string|nil String to use for indenting and padding (default=<Tab>)
 ---@return string _ Stringified table
 function _tbl_to_str(tbl, count, indent, pad)
@@ -1392,7 +1392,7 @@ end
 ---(haystack).
 ---@param haystack string String to be searched
 ---@param needle string Substring to search for
----@return number _ Number of occurrences found
+---@return integer _ Number of occurrences found
 function dn_utils.match_count(haystack, needle)
 	-- params
 	assert(type(haystack) == "string", "Expected string, got " .. type(haystack))
@@ -1534,8 +1534,8 @@ end
 ---initial location is shifted to the desired finish location. If start and
 ---finish values are not sensible the string is returned unchanged.
 ---@param str string String to be padded
----@param start number Integer position in string to pad from
----@param finish number Integer position in string to pad to
+---@param start integer Position in string to pad from
+---@param finish integer Position in string to pad to
 ---@param char string|nil Single character to pad with
 ---@return string _ Padded string
 ---@usage [[
@@ -1904,7 +1904,7 @@ end
 -- sleep(sec)
 
 ---Pause script for a specified number of seconds.
----@param sec number Number of seconds to pause script execution
+---@param sec integer Number of seconds to pause script execution
 ---@return nil _ No return value
 function dn_utils.sleep(sec)
 	-- credit: http://lua-users.org/wiki/SleepFunction
@@ -2041,7 +2041,7 @@ end
 
 ---Print prettified table to console.
 ---@param tbl table Table to convert to a string
----@param count number|nil Number of pads between string tokens
+---@param count integer|nil Number of pads between string tokens
 ---(default=1)
 ---@param pad string|nil String to use for indenting and padding
 ---(default=<Tab>)
@@ -2100,7 +2100,7 @@ end
 ---
 ---A fatal error is raised if the parameter is not a table.
 ---@param tbl table Table to analyse
----@return number _ Integer size of table
+---@return integer _ Size of table
 function dn_utils.table_size(tbl)
 	assert(type(tbl) == "table", "Expected a table, got a " .. type(tbl))
 	local size = 0
@@ -2114,7 +2114,7 @@ end
 
 ---Convert table to a prettified string.
 ---@param tbl table Table to convert to a string
----@param count number|nil Number of pads between string tokens
+---@param count integer|nil Number of pads between string tokens
 ---(default=1)
 ---@param pad string|nil String to use for indenting and padding
 ---(default=<Tab>)
