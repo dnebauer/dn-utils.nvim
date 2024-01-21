@@ -50,6 +50,7 @@ Files and directories
 • |dn_utils.get_rtp_dir|      finds directory under runtimepath
 • |dn_utils.get_rtp_file|     finds file(s) in directories under 'rtp'
 • |dn_utils.parent_dir|       get parent directory
+• |dn_utils.parse_filepath|   split filepath into component parts
 • |dn_utils.path_exists|      check whether file or directory exists
 • |dn_utils.remove_dir|       delete directory and contents recursively
 
@@ -61,6 +62,8 @@ User interaction
 • |dn_utils.menu_select|      select item from menu
 
 Programming
+• |dn_utils.show_runtimepaths|
+                            display runtimepaths one per line
 • |dn_utils.execute_shell_command|
                             execute shell command
 • |dn_utils.runtimepaths|     get list of runtime paths
@@ -71,12 +74,14 @@ Programming
 • |dn_utils.sleep|            pause script execution for defined time
 
 String manipulation
+• |dn_utils.change_caps|      changes capitalisation of line/selection
 • |dn_utils.dumbify_quotes|   replace smart quotes with straight quotes
-• |dn_utils.stringify|        convert variable to string
 • |dn_utils.match_count|      finds number of occurrences of string
 • |dn_utils.pad_internal|     pad string at internal location
-• |dn_utils.change_caps|      changes capitalisation of line/selection
 • |dn_utils.split|            split string on separator
+• |dn_utils.stringify|        convert variable to string
+• |dn_utils.substitute|       safe substitution in buffer
+• |dn_utils.trim_char|        trim character from ends of string
 • |dn_utils.wrap|             wrap string sensibly
 
 Tables
@@ -89,6 +94,8 @@ Tables
 • |dn_utils.table_stringify|  prettify table
 
 Numbers
+• |dn_utils.valid_non_negative_int|
+                            check whether input is valid integer > 0
 • |dn_utils.valid_pos_int|    check whether input is valid positive int
 
 Miscellaneous
