@@ -66,12 +66,14 @@ Programming
                             display runtimepaths one per line
 • |dn_utils.execute_shell_command|
                             execute shell command
+• |dn_utils.in_visual_mode|   whether currently in visual mode
 • |dn_utils.runtimepaths|     get list of runtime paths
 • |dn_utils.scriptnames|      display scripts in location list
 • |dn_utils.setup|            initialise/set up plugin
 • |dn_utils.shell_escape|     escape shell command
 • |dn_utils.showRuntimepaths| display runtime paths
 • |dn_utils.sleep|            pause script execution for defined time
+• |dn_utils.visual_selection| get visual selection
 
 String manipulation
 • |dn_utils.change_caps|      changes capitalisation of line/selection
@@ -105,10 +107,9 @@ Miscellaneous
 Functions                                                   *dn_utils.functions*
 
 dn_utils.change_caps()                                    *dn_utils.change_caps*
-    Changes capitalisation of line or visual selection. The {mode} is "n"
-    (|Normal-mode|) "i" (|Insert-mode|) or "v" (|Visual-mode|). The line or
-    selection is replaced with the altered line or selection. Newlines in a
-    selection are preserved.
+    Changes capitalisation of line or visual selection. The line or selection
+    is replaced with the altered line or selection. Newlines in a selection
+    are preserved.
 
     The user chooses the type of capitalisation from a menu:
          upper case: convert to all uppercase characters
@@ -259,6 +260,13 @@ dn_utils.info({...})                                             *dn_utils.info*
 
     Returns: ~
         (nil)  No return value
+
+
+dn_utils.in_visual_mode()                              *dn_utils.in_visual_mode*
+    Check whether currently in visual mode.
+
+    Returns: ~
+        (boolean)  Whether in visual mode
 
 
 dn_utils.is_table_value({tbl}, {str})                  *dn_utils.is_table_value*
@@ -655,6 +663,15 @@ dn_utils.valid_pos_int({var})                           *dn_utils.valid_pos_int*
 
     Returns: ~
         (boolean)  Whether variable is a positive integer
+
+
+dn_utils.visual_selection()                          *dn_utils.visual_selection*
+    Get visual selection.
+    Returns a string if in visual mode, or nil if not in visual mode.
+    A blockwise visual selection may contain newlines.
+
+    Returns: ~
+        (string|nil)  Selected text
 
 
 dn_utils.warning({...})                                       *dn_utils.warning*

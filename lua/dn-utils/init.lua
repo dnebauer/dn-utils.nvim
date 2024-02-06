@@ -904,12 +904,14 @@ end
 ---                            display runtimepaths one per line
 ---• |dn_utils.execute_shell_command|
 ---                            execute shell command
+---• |dn_utils.in_visual_mode|   whether currently in visual mode
 ---• |dn_utils.runtimepaths|     get list of runtime paths
 ---• |dn_utils.scriptnames|      display scripts in location list
 ---• |dn_utils.setup|            initialise/set up plugin
 ---• |dn_utils.shell_escape|     escape shell command
 ---• |dn_utils.showRuntimepaths| display runtime paths
 ---• |dn_utils.sleep|            pause script execution for defined time
+---• |dn_utils.visual_selection| get visual selection
 ---
 ---String manipulation
 ---• |dn_utils.change_caps|      changes capitalisation of line/selection
@@ -944,10 +946,9 @@ end
 
 -- change_caps()
 
----Changes capitalisation of line or visual selection. The {mode} is "n"
----(|Normal-mode|) "i" (|Insert-mode|) or "v" (|Visual-mode|). The line or
----selection is replaced with the altered line or selection. Newlines in a
----selection are preserved.
+---Changes capitalisation of line or visual selection. The line or selection
+---is replaced with the altered line or selection. Newlines in a selection
+---are preserved.
 ---
 ---The user chooses the type of capitalisation from a menu:
 ---     upper case: convert to all uppercase characters
@@ -1002,7 +1003,8 @@ function dn_utils.change_caps()
 			cs = ce
 			ce = temp[2]
 		end
-		-- getpos() is partially broken because it uses the start and end positions of the *cursor*, not the selection:
+		-- getpos() is partially broken because it uses the start and end
+		-- positions of the *cursor*, not the selection:
 		-- • this does not matter for "v" (charwise-visual) mode
 		-- • this does not matter for "" (blockwise-visual) mode
 		-- • this causes wrong results in "V" (linewise-visual) mode
@@ -1361,6 +1363,19 @@ function dn_utils.info(...)
 	end
 	local output = table.concat(messages, "\n")
 	vim.api.nvim_echo({ { output } }, true, {})
+end
+
+-- in_visual_mode()
+
+---Check whether currently in visual mode.
+---@return boolean _ Whether in visual mode
+function dn_utils.in_visual_mode()
+	-- can represent "" as _t("<C-v>") where _t() is a local function
+	local C_v = _t("<C-v>")
+	-- are we in visual mode
+	-- • v=charwise-visual, V=linewise-visual, =blockwise-visual
+	local mode = vim.api.nvim_get_mode().mode
+	return vim.tbl_contains({ "v", "V", C_v }, mode)
 end
 
 -- is_table_value(tbl, str)
@@ -2205,6 +2220,83 @@ function dn_utils.valid_pos_int(var)
 	end
 	-- must be integer
 	return (var % 1) == 0
+end
+
+-- visual_selection()
+
+---Get visual selection.
+---Returns a string if in visual mode, or nil if not in visual mode.
+---A blockwise visual selection may contain newlines.
+---@return string|nil _ Selected text
+function dn_utils.visual_selection()
+	-- can represent "" as _t("<C-v>") where _t() is a local function
+	local C_v = _t("<C-v>")
+	-- need to be in visual mode
+	-- • v=charwise-visual, V=linewise-visual, =blockwise-visual
+	local mode = vim.api.nvim_get_mode().mode
+	if not vim.tbl_contains({ "v", "V", C_v }, mode) then
+		return nil
+	end
+	-- get selection coordinates
+	local _, ls, cs = unpack(vim.fn.getpos("v"))
+	local _, le, ce = unpack(vim.fn.getpos("."))
+	-- • transpose position coordinates if region defined in backward direction
+	if ls > le or (ls == le and cs > ce) then
+		local temp = { ls, cs }
+		ls = le
+		le = temp[1]
+		cs = ce
+		ce = temp[2]
+	end
+	-- getpos() is partially broken because it uses the start and end positions
+	-- of the *cursor*, not the selection:
+	-- • this does not matter for "v" (charwise-visual) mode
+	-- • this does not matter for "" (blockwise-visual) mode
+	-- • this causes wrong results in "V" (linewise-visual) mode
+	if mode == "V" then
+		cs, ce = 1, -1
+	end
+	-- can't use |nvim_buf_get_text()| to retrieve selected text because it
+	-- acts as though the mode is "v" (charwise-visual), which makes it
+	-- unusable as a general solution for all visual modes, so use
+	-- |vim.region()| instead
+	-- vim.region() requires reg_type param (4th param) of "b" instead of ""
+	-- in blockwise-visual mode, even though the |setreg()| help (referenced by
+	-- vim.region() help) states they are equivalent, so switch all visual mode
+	-- codes to the preferred vim.region() reg_type codes
+	local reg_types = { v = "c", V = "l", [C_v] = "b" }
+	local reg_type = reg_types[mode]
+	-- subtract 1 from coords because vim.region() uses zero-based coordinates
+	local region = vim.region(0, { ls - 1, cs - 1 }, { le - 1, ce - 1 }, reg_type, false)
+	-- vim.region is partially broken:
+	-- • correct output in "v" (charwise-visual) mode
+	-- • correct output in "V" (linewise-visual) mode, except
+	--   that it indicates end of line with -1 for all lines except the last,
+	--   in which end of line is indicated with -2
+	-- • incorrect output in "" (blockwise-visual) mode, where the
+	--   first and last rows are correct but the intervening rows give whole-
+	--   line start and end columns instead of using the columns from the
+	--   start and end coordinates
+	-- build single string containing selecter lines (joined by newlines)
+	local selected_lines = {}
+	for line_no, cols in dn_utils.pairs_by_keys(region) do
+		-- in blockwise-visual mode ensure
+		-- all lines have correct start and end cols
+		if mode == C_v then
+			local cv_cols = { cs - 1, ce - 1 }
+			cols = cv_cols
+		end
+		local line = vim.fn.getline(line_no + 1)
+		local line_length = line:len() - 1
+		-- vim.region() returns -1 or -2
+		-- for end of line
+		if cols[2] < 0 then
+			cols[2] = line_length
+		end
+		-- get selected text in line and add to table
+		table.insert(selected_lines, line:sub(cols[1] + 1, cols[2] + 1))
+	end
+	return table.concat(selected_lines, "\n")
 end
 
 -- warning(messages)
