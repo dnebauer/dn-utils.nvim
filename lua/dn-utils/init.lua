@@ -895,9 +895,10 @@ end
 ---User interaction
 ---• |dn_utils.clear_prompt|     clear command line
 ---• |dn_utils.error|            display error message
+---• |dn_utils.floating_window|  display content in floating window
 ---• |dn_utils.info|             display message to user
----• |dn_utils.warn|             display warning message
 ---• |dn_utils.menu_select|      select item from menu
+---• |dn_utils.warning|          display warning message
 ---
 ---Programming
 ---• |dn_utils.show_runtimepaths|
@@ -1237,6 +1238,86 @@ function dn_utils.file_readable(filepath)
 	else
 		return false
 	end
+end
+
+-- floating_window(content, opts)
+
+---Display content in a floating window.
+---
+---The default behaviour is to display a floating window the exact size of
+---the content as close to the centre of the screen as possible. To override
+---this behaviour pass configuration options compatible with
+---|nvim_open_win()|. See the usage example for options to pass to mimic a
+---hover window, that is, opening under the word the cursor is on.
+---
+---When the window is displayed the <Esc>, <CR>, <Leader>, "q" and "Q" keys
+---are mapped to close it.
+---@param content table List of lines to display
+---@param opts table|nil Optional configuration dict. Can be any config
+---option that can be passed to |nvim_open_win()|'s
+---config option. Use to override the default
+---values.
+---@return nil _ No return value
+---@usage [[
+---local util = require'dn-perl'
+---local hover_opts = { relative = "cursor", row = 1, col = 0 }
+---util.floating_window(my_content, hover_opts)
+---@usage ]]
+function dn_utils.floating_window(content, opts)
+	-- dimensions
+	-- • width
+	local win_width = vim.api.nvim_get_option("columns")
+	local max_width = math.ceil(win_width * 0.9)
+	local content_width = 0
+	for _, line in ipairs(content) do
+		local line_len = line:len()
+		if line_len > content_width then
+			content_width = line_len
+		end
+	end
+	local width = max_width
+	if content_width < max_width then
+		width = content_width
+	end
+	-- • height
+	local win_height = vim.api.nvim_get_option("lines")
+	local max_height = math.ceil(win_height * 0.9)
+	local content_height = #content
+	local height = max_height
+	if content_height < max_height then
+		height = content_height
+	end
+	-- position
+	local row = math.ceil((win_height - height) / 2)
+	local col = math.ceil((win_width - width) / 2)
+	-- create a new scratch buffer
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+	-- load buffer
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+	-- set mappings in the buffer to close the window easily
+	local closing_keys = { "<Esc>", "<CR>", "<Leader>", "q", "Q" }
+	for _, closing_key in ipairs(closing_keys) do
+		vim.api.nvim_buf_set_keymap(
+			buf,
+			"n",
+			closing_key,
+			"<Cmd>close<CR>",
+			{ silent = true, nowait = true, noremap = true }
+		)
+	end
+	-- create the floating window
+	local win_opts = {
+		relative = "editor",
+		width = width,
+		height = height,
+		row = row,
+		col = col,
+		style = "minimal",
+	}
+	opts = opts or {}
+	opts = vim.tbl_deep_extend("force", win_opts, opts)
+	vim.api.nvim_open_win(buf, true, opts)
 end
 
 -- get_file_dir()

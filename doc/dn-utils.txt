@@ -57,9 +57,10 @@ Files and directories
 User interaction
 • |dn_utils.clear_prompt|     clear command line
 • |dn_utils.error|            display error message
+• |dn_utils.floating_window|  display content in floating window
 • |dn_utils.info|             display message to user
-• |dn_utils.warn|             display warning message
 • |dn_utils.menu_select|      select item from menu
+• |dn_utils.warning|          display warning message
 
 Programming
 • |dn_utils.show_runtimepaths|
@@ -212,6 +213,37 @@ dn_utils.file_readable({filepath})                      *dn_utils.file_readable*
 
     Returns: ~
         (boolean)  Whether file is readable
+
+
+                                                      *dn_utils.floating_window*
+dn_utils.floating_window({content}, {opts})
+    Display content in a floating window.
+
+    The default behaviour is to display a floating window the exact size of
+    the content as close to the centre of the screen as possible. To override
+    this behaviour pass configuration options compatible with
+    |nvim_open_win()|. See the usage example for options to pass to mimic a
+    hover window, that is, opening under the word the cursor is on.
+
+    When the window is displayed the <Esc>, <CR>, <Leader>, "q" and "Q" keys
+    are mapped to close it.
+
+    Parameters: ~
+        {content}  (table)      List of lines to display
+        {opts}     (table|nil)  Optional configuration dict. Can be any config
+                                option that can be passed to |nvim_open_win()|'s
+                                config option. Use to override the default
+                                values.
+
+    Returns: ~
+        (nil)  No return value
+
+    Usage: ~
+>lua
+        local util = require'dn-perl'
+        local hover_opts = { relative = "cursor", row = 1, col = 0 }
+        util.floating_window(my_content, hover_opts)
+<
 
 
 dn_utils.get_file_dir()                                  *dn_utils.get_file_dir*
