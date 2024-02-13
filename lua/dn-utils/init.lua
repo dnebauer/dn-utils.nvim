@@ -885,6 +885,7 @@ end
 ---• |dn_utils.floating_window|  display content in floating window
 ---• |dn_utils.info|             display message to user
 ---• |dn_utils.menu_select|      select item from menu
+---• |dn_utils.picker|           select item from telescope dropdown
 ---• |dn_utils.warning|          display warning message
 ---
 ---Programming
@@ -1821,6 +1822,58 @@ function dn_utils.path_exists(path)
 	-- check whether path exists
 	print(vim.loop.fs_realpath(path))
 	return vim.loop.fs_realpath(path) ~= nil
+end
+
+-- picker(items, on_select, [prompt])
+
+---Invokes a telescope menu displaying the provided items and prompt. When the
+---user selects an item it is passed to the "on_select" function.
+---@param items table List of menu items
+---@param on_select function Invoked on item selection, and passed
+---the selected item
+---@param prompt string|nil Menu prompt (default="Select item")
+---@return nil _ No return value
+function dn_utils.picker(items, on_select, prompt)
+	-- params
+	assert(type(items) == "table", "Expected list, got " .. type(items))
+	assert(vim.tbl_islist(items), "Expected list, got dict")
+	assert(vim.tbl_count(items) > 0, "Items list is empty")
+	assert(type(on_select) == "function", "Expected function, got " .. type(on_select))
+	local default_prompt = "Select item"
+	prompt = prompt or default_prompt
+	assert(type(prompt) == "string", "Expected string, got " .. type(prompt))
+	if prompt:len() == 0 then
+		prompt = default_prompt
+	end
+
+	-- construct picker
+	local pickers = require("telescope.pickers")
+	local finders = require("telescope.finders")
+	local conf = require("telescope.config").values
+	local actions = require("telescope.actions")
+	local action_state = require("telescope.actions.state")
+	local menu = function(opts)
+		opts = opts or {}
+		pickers
+			.new(opts, {
+				prompt_title = prompt,
+				finder = finders.new_table({
+					results = items,
+				}),
+				sorter = conf.generic_sorter(opts),
+				attach_mappings = function(prompt_bufnr)
+					actions.select_default:replace(function()
+						actions.close(prompt_bufnr)
+						local selection = action_state.get_selected_entry()
+						on_select(selection[1])
+					end)
+					return true
+				end,
+			})
+			:find()
+	end
+	-- call picker
+	menu(require("telescope.themes").get_dropdown({}))
 end
 
 -- remove_dir(dirpath)
