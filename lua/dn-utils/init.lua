@@ -35,19 +35,6 @@ local sf = string.format
 
 -- PUBLIC VARIABLES
 
----@mod dn_utils.variables Variables
-
----@tag dn_utils.options
----@brief [[
----While it is not anticipated that users will need to inspect the plugin
----options, they are exposed as a table in the "options" field. The preferred
----method to set or alter these options is through the |dn_utils.setup| method.
----Change them in any other way at your own risk!
----@brief ]]
-dn_utils.options = {
-	version = "2023-11-19",
-}
-
 -- PRIVATE FUNCTIONS
 
 -- forward declarations
@@ -908,7 +895,6 @@ end
 ---• |dn_utils.in_visual_mode|   whether currently in visual mode
 ---• |dn_utils.runtimepaths|     get list of runtime paths
 ---• |dn_utils.scriptnames|      display scripts in location list
----• |dn_utils.setup|            initialise/set up plugin
 ---• |dn_utils.shell_escape|     escape shell command
 ---• |dn_utils.showRuntimepaths| display runtime paths
 ---• |dn_utils.sleep|            pause script execution for defined time
@@ -1954,21 +1940,6 @@ function dn_utils.scriptnames()
 	-- display location list
 	vim.fn.setloclist(0, list)
 	vim.cmd.lopen()
-end
-
--- setup(opts)
-
----Called explicitly by users to configure this plugin.
----@param opts table Plugin options
----@return nil _ No return value
-function dn_utils.setup(opts)
-	-- process options
-	opts = opts or {}
-	dn_utils.options = vim.tbl_deep_extend("keep", opts, dn_utils.options)
-
-	-- do here any startup your plugin needs, like creating commands and
-	-- mappings that depend on values passed in options
-	--vim.api.nvim_create_user_command("MyUtilsGreeting", dn_utils.greet, {})
 end
 
 -- shell_escape(...)
