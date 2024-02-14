@@ -552,9 +552,9 @@ dn_utils.split({inputstr}, {sep})                               *dn_utils.split*
 
     Parameters: ~
         {inputstr}  (string)      String to split
-        {sep}       (string|nil)  Separator which can be any valid
-                                  |luaref-patterns|, defaults to lua character
-                                  class "%s"
+        {sep}       (string|nil)  Separator which can be any valid lua
+                                  pattern (|luaref-patterns|), defaults to lua
+                                  character class "%s"
 
     Returns: ~
         (table)  Array of split items

@@ -1187,7 +1187,8 @@ function dn_utils.execute_shell_command(...)
 	local stdout_file = os.tmpname()
 	local stderr_file = os.tmpname()
 
-	-- ignore spurious param-type-mismatch errors for following line
+	-- spurious error due to limits of annotations
+	---@diagnostic disable-next-line:param-type-mismatch
 	local command = dn_utils.shell_escape({ ... })
 
 	local exit_status = os.execute(command .. " > " .. stdout_file .. " 2> " .. stderr_file)
@@ -2046,9 +2047,9 @@ end
 
 ---Split a string on a separator character.
 ---@param inputstr string String to split
----@param sep string|nil Separator which can be any valid
----|luaref-patterns|, defaults to lua character
----class "%s"
+---@param sep string|nil Separator which can be any valid lua
+---pattern (|luaref-patterns|), defaults to lua
+---character class "%s"
 ---@return table _ Array of split items
 function dn_utils.split(inputstr, sep)
 	-- process args
