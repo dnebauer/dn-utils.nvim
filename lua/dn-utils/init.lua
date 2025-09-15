@@ -297,7 +297,7 @@ function _menu_normalise(menu)
 	local normalised = {}
 	-- set initial state
 	local state, items
-	if vim.tbl_islist(menu) then
+	if vim.islist(menu) then
 		state = "seq_expecting-option"
 		items = vim.deepcopy(menu)
 	else
@@ -1103,7 +1103,7 @@ function dn_utils.dir_contents(dirpath)
 	if dirpath:sub(1, 1) == "~" then
 		dirpath = os.getenv("HOME") .. dirpath:sub(2)
 	end
-	local realpath = vim.loop.fs_realpath(dirpath)
+	local realpath = vim.uv.fs_realpath(dirpath)
 	assert(realpath ~= nil, sf("Unable to convert '%s' to a directory path", dirpath))
 	-- get directory content
 	local files, dirs = {}, {}
@@ -1254,7 +1254,7 @@ end
 function dn_utils.floating_window(content, opts)
 	-- dimensions
 	-- • width
-	local win_width = vim.api.nvim_get_option("columns")
+	local win_width = vim.api.nvim_get_option_value("columns", {})
 	local max_width = math.ceil(win_width * 0.9)
 	local content_width = 0
 	for _, line in ipairs(content) do
@@ -1268,7 +1268,7 @@ function dn_utils.floating_window(content, opts)
 		width = content_width
 	end
 	-- • height
-	local win_height = vim.api.nvim_get_option("lines")
+	local win_height = vim.api.nvim_get_option_value("lines", {})
 	local max_height = math.ceil(win_height * 0.9)
 	local content_height = #content
 	local height = max_height
@@ -1280,7 +1280,7 @@ function dn_utils.floating_window(content, opts)
 	local col = math.ceil((win_width - width) / 2)
 	-- create a new scratch buffer
 	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+	vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
 	-- load buffer
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
 	-- set mappings in the buffer to close the window easily
@@ -1837,8 +1837,8 @@ end
 function dn_utils.picker(items, on_select, prompt)
 	-- params
 	assert(type(items) == "table", "Expected list, got " .. type(items))
-	assert(vim.tbl_islist(items), "Expected list, got dict")
-	assert(vim.tbl_count(items) > 0, "Items list is empty")
+	assert(vim.islist(items), "Expected list, got dict")
+	assert(vim.count(items) > 0, "Items list is empty")
 	assert(type(on_select) == "function", "Expected function, got " .. type(on_select))
 	local default_prompt = "Select item"
 	prompt = prompt or default_prompt
@@ -2006,6 +2006,7 @@ end
 ---@usage ]]
 function dn_utils.shell_escape(...)
 	local args = vim.fn.flattennew({ ... })
+	assert(type(args) == "table", "expected table, got: " .. type(args))
 	local escaped = {}
 	for _, arg in ipairs(args) do
 		local str = tostring(arg)
@@ -2190,7 +2191,7 @@ function dn_utils.table_remove_empty_end_items(source)
 
 	-- process param
 	assert(type(source) == "table", "Expected table, got " .. type(source))
-	assert(vim.tbl_islist(source), "Table is not a sequence")
+	assert(vim.islist(source), "Table is not a sequence")
 	-- copy items except for empty end items
 	-- but this reverses order of sequence
 	local reversed = {}
