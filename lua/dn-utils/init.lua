@@ -1505,7 +1505,7 @@ end
 ---causes an error.
 ---
 ---The selected menu option (or its associated value) is returned, with a
----|luaref-nil| -indicating no item was selected.
+---|luaref-nil| indicating no item was selected.
 ---
 ---In the following discussion a "simple" menu is one without any submenus,
 ---and "simple" variables are string, number, boolean, and nil. A "simple"
@@ -1526,8 +1526,8 @@ end
 ---
 ---Submenus can be added to both sequence and dictionary menus. In such a
 ---case the header for the submenu, or child menu, is indicated in the parent
----menu by appending an arrow ( ->) to the header option in the parent menu.
----Adding a submenu Dict is easy - the new submenu is added as a new
+---menu by appending an arrow (" ->") to the header option in the parent
+---menu. Adding a submenu Dict is easy - the new submenu is added as a new
 ---key-value pair to the parent menu. The new key is the submenu header in
 ---the parent menu while the new value is a sequence or dictionary defining
 ---the new submenu options.
@@ -2540,6 +2540,7 @@ end, { desc = "Replace smart quotes in buffer with plain ascii 'straight' quotes
 ---@brief [[
 ---Displays output of `scriptnames` command in a location list. Calls function
 ---|dn_utils.scriptnames|.
+---@brief ]]
 vim.api.nvim_create_user_command("Scriptnames", function()
 	dn_utils.scriptnames()
 end, { desc = "Display output of scriptnames command in a loclist" })
