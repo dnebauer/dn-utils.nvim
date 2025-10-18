@@ -325,7 +325,7 @@ dn_utils.menu_select({menu}, {prompt})                    *dn_utils.menu_select*
     causes an error.
 
     The selected menu option (or its associated value) is returned, with a
-    |luaref-nil| -indicating no item was selected.
+    |luaref-nil| indicating no item was selected.
 
     In the following discussion a "simple" menu is one without any submenus,
     and "simple" variables are string, number, boolean, and nil. A "simple"
@@ -346,8 +346,8 @@ dn_utils.menu_select({menu}, {prompt})                    *dn_utils.menu_select*
 
     Submenus can be added to both sequence and dictionary menus. In such a
     case the header for the submenu, or child menu, is indicated in the parent
-    menu by appending an arrow ( ->) to the header option in the parent menu.
-    Adding a submenu Dict is easy - the new submenu is added as a new
+    menu by appending an arrow (" ->") to the header option in the parent
+    menu. Adding a submenu Dict is easy - the new submenu is added as a new
     key-value pair to the parent menu. The new key is the submenu header in
     the parent menu while the new value is a sequence or dictionary defining
     the new submenu options.
@@ -765,4 +765,7 @@ Replaces smart quotes with plain ascii "straight" single quotes (apostrophes)
 and double quotes. Calls function |dn_utils.dumbify_quotes|.
 
                                                           *dn_utils.Scriptnames*
+Displays output of `scriptnames` command in a location list. Calls function
+|dn_utils.scriptnames|.
+
 vim:tw=78:ts=8:noet:ft=help:norl:
