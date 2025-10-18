@@ -31,6 +31,10 @@ if vim.g.dn_utils_loaded then
 end
 vim.g.dn_utils_loaded = true
 
+-- private plugin configuration options
+-- • none defined at this time
+local _config = {}
+
 local sf = string.format
 
 -- PUBLIC VARIABLES
@@ -857,6 +861,30 @@ function _wrap_manual(message, opts)
 		end
 	end
 	return table.concat(wrapped, "\n")
+end
+
+-- config([opts])
+
+---@private
+---Function required by several popular plugin managers.
+---It ignores any options passed to it.
+---
+---@param opts table|nil Configuration options. Ignored.
+---@return nil _ No return value
+function dn_utils.config(opts)
+	_config = vim.tbl_deep_extend("force", _config, opts or {})
+end
+
+-- setup([opts])
+
+---@private
+---Function required by several popular plugin managers.
+---It ignores any options passed to it.
+---
+---@param opts table|nil Configuration options. Ignored.
+---@return nil _ No return value
+function dn_utils.setup(opts)
+	dn_utils.config(opts)
 end
 
 -- PUBLIC FUNCTIONS
