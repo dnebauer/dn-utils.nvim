@@ -1,7 +1,7 @@
 -- DOCUMENTATION
 
 ---@brief [[
----*dn-utils-nvim.txt*   For Neovim version 0.9   Last change: 2024 January 15
+---*dn-utils-nvim.txt*   For Neovim version 0.11   Last change: 2025 October 20
 ---@brief ]]
 
 ---@toc dn_utils.contents
@@ -643,7 +643,7 @@ end
 --- --  return vim.fn.pumvisible() == 1 and [[\<C-N>]] or [[\<Tab>]]
 --- --end
 ---function _G.smart_tab()
----  return vim.fn.pumvisible() == 1 and t'<C-N>' or t'<Tab>'
+---  return vim.fn.pumvisible() == 1 and _t("<C-N>") or _t("<Tab>")
 ---end
 ---@usage ]]
 function _t(code)
@@ -1006,96 +1006,53 @@ function dn_utils.change_caps()
 		local line = vim.api.nvim_get_current_line()
 		line = _change_caps(line, case_type)
 		vim.api.nvim_set_current_line(line)
-	-- operate on visual selection
+		-- operate on visual selection
 	elseif is_visual_replace_mode then
 		-- get selection
-		local _, ls, cs = unpack(vim.fn.getpos("v"))
-		local _, le, ce = unpack(vim.fn.getpos("."))
-		-- transpose position coordinates if region defined in backward direction
-		if ls > le or (ls == le and cs > ce) then
-			local temp = { ls, cs }
-			ls = le
-			le = temp[1]
-			cs = ce
-			ce = temp[2]
-		end
-		-- getpos() is partially broken because it uses the start and end
-		-- positions of the *cursor*, not the selection:
-		-- • this does not matter for "v" (charwise-visual) mode
-		-- • this does not matter for "" (blockwise-visual) mode
-		-- • this causes wrong results in "V" (linewise-visual) mode
-		if mode == "V" then
-			cs, ce = 1, -1
-		end
+		local corner_1 = vim.fn.getpos("v")
+		local corner_2 = vim.fn.getpos(".")
 		-- can't use |nvim_buf_get_text()| to retrieve selected text because it
 		-- acts as though the mode is "v" (charwise-visual), which makes it
 		-- unusable as a general solution for all visual modes -- use
-		-- |vim.region()| instead
-		-- vim.region() requires reg_type param (4th param) of "b" instead of ""
-		-- in blockwise-visual mode, even though the |setreg()| help (referenced by
-		-- vim.region() help) states they are equivalent, so switch all visual mode
-		-- codes to the preferred vim.region() reg_type codes
-		local reg_types = { v = "c", V = "l", [C_v] = "b" }
-		local reg_type = reg_types[mode]
-		-- subtract 1 from coords because vim.region() uses zero-based coordinates
-		local region = vim.region(0, { ls - 1, cs - 1 }, { le - 1, ce - 1 }, reg_type, false)
-		-- vim.region is partially broken:
-		-- • correct output in "v" (charwise-visual) mode
-		-- • correct output in "V" (linewise-visual) mode, except
-		--   that it indicates end of line with -1 for all lines except the last,
-		--   in which end of line is indicated with -2
-		-- • incorrect output in "" (blockwise-visual) mode, where the
-		--   first and last rows are correct but the intervening rows give whole-
-		--   line start and end columns instead of using the columns from the
-		--   start and end coordinates
+		-- |vim.getregionpos()| instead
+		local region_coords = vim.fn.getregionpos(corner_1, corner_2, { type = mode })
 		-- build single string containing selecter lines (joined by newlines)
+		-- also harvest useful data about selected lines
 		local selected_lines = {}
-		for line_no, cols in dn_utils.pairs_by_keys(region) do
-			-- rebuild region table as we go to capture line data
-			region[line_no] = {}
-			region[line_no].cols = cols
-			-- in blockwise-visual mode ensure
-			-- all lines have correct start and end cols
-			if mode == C_v then
-				local cv_cols = { cs - 1, ce - 1 }
-				region[line_no].cols = cv_cols
-				cols = cv_cols
-			end
-			local line = vim.fn.getline(line_no + 1)
-			region[line_no].line = line
-			local line_length = line:len() - 1
-			region[line_no].line_length = line_length
-			-- vim.region() returns -1 or -2
-			-- for end of line
-			if cols[2] < 0 then
-				region[line_no].cols[2] = line_length
-				cols[2] = line_length
-			end
+		local selection_data = {}
+		for _, line_coords in ipairs(region_coords) do
+			local line_num = line_coords[1][2]
+			local col_start = line_coords[1][3]
+			local col_end = line_coords[2][3]
+			local text = vim.fn.getline(line_num)
 			-- get selected text in line and add to table
-			table.insert(selected_lines, line:sub(cols[1] + 1, cols[2] + 1))
+			table.insert(selected_lines, text:sub(col_start, col_end))
+			table.insert(selection_data, {
+				line_num = line_num,
+				col_start = col_start,
+				col_end = col_end,
+				text = text,
+			})
 		end
 		local selection = table.concat(selected_lines, "\n")
 		-- change case
 		local changed = _change_caps(selection, case_type)
 		local changed_lines = dn_utils.split(changed, "\n")
 		-- replace selection with changed text
-		for line_no, line_data in dn_utils.pairs_by_keys(region) do
-			-- need to adjust line_num and cols by +1 because vim.region() is 0-based
-			-- while functions used here are 1-based
-			local line_num = line_no + 1
-			local startcol, endcol = line_data.cols[1] + 1, line_data.cols[2] + 1
-			local line = line_data.line
-			local line_length = line_data.line_length
+		for _, line_data in ipairs(selection_data) do
+			local text = line_data.text
+			local line_length = text:len()
+			local line_num = line_data.line_num
+			local col_start = line_data.col_start
+			local col_end = line_data.col_end
 			local replace = ""
 			-- get line part before selected text
-			replace = replace .. line:sub(0, startcol - 1)
+			replace = replace .. text:sub(1, col_start - 1)
 			-- get selected text
-			-- • the elements of 'changed_lines' correspond to line_no-line_data
-			--   pairs in 'region' when 'region' ordered by line_no
 			-- • consume 'changed_lines' elements 1 per loop
 			replace = replace .. table.remove(changed_lines, 1)
 			-- get line part after selected text
-			replace = replace .. line:sub(endcol + 1, line_length + 1)
+			replace = replace .. text:sub(col_end + 1, line_length)
 			-- replace line with changed text
 			vim.fn.setline(line_num, replace)
 		end
@@ -1190,7 +1147,8 @@ function dn_utils.error(...)
 			table.insert(messages, dn_utils.stringify(message))
 		end
 	end
-	vim.api.nvim_err_writeln(table.concat(messages, "\n"))
+	local err_msg = table.concat(messages, "\n")
+	vim.api.nvim_echo({ { err_msg } }, true, { err = true })
 end
 
 -- execute_shell_command(...)
@@ -2372,65 +2330,12 @@ function dn_utils.visual_selection()
 	if not vim.tbl_contains({ "v", "V", C_v }, mode) then
 		return nil
 	end
-	-- get selection coordinates
-	local _, ls, cs = unpack(vim.fn.getpos("v"))
-	local _, le, ce = unpack(vim.fn.getpos("."))
-	-- • transpose position coordinates if region defined in backward direction
-	if ls > le or (ls == le and cs > ce) then
-		local temp = { ls, cs }
-		ls = le
-		le = temp[1]
-		cs = ce
-		ce = temp[2]
-	end
-	-- getpos() is partially broken because it uses the start and end positions
-	-- of the *cursor*, not the selection:
-	-- • this does not matter for "v" (charwise-visual) mode
-	-- • this does not matter for "" (blockwise-visual) mode
-	-- • this causes wrong results in "V" (linewise-visual) mode
-	if mode == "V" then
-		cs, ce = 1, -1
-	end
-	-- can't use |nvim_buf_get_text()| to retrieve selected text because it
-	-- acts as though the mode is "v" (charwise-visual), which makes it
-	-- unusable as a general solution for all visual modes, so use
-	-- |vim.region()| instead
-	-- vim.region() requires reg_type param (4th param) of "b" instead of ""
-	-- in blockwise-visual mode, even though the |setreg()| help (referenced by
-	-- vim.region() help) states they are equivalent, so switch all visual mode
-	-- codes to the preferred vim.region() reg_type codes
-	local reg_types = { v = "c", V = "l", [C_v] = "b" }
-	local reg_type = reg_types[mode]
-	-- subtract 1 from coords because vim.region() uses zero-based coordinates
-	local region = vim.region(0, { ls - 1, cs - 1 }, { le - 1, ce - 1 }, reg_type, false)
-	-- vim.region is partially broken:
-	-- • correct output in "v" (charwise-visual) mode
-	-- • correct output in "V" (linewise-visual) mode, except
-	--   that it indicates end of line with -1 for all lines except the last,
-	--   in which end of line is indicated with -2
-	-- • incorrect output in "" (blockwise-visual) mode, where the
-	--   first and last rows are correct but the intervening rows give whole-
-	--   line start and end columns instead of using the columns from the
-	--   start and end coordinates
-	-- build single string containing selecter lines (joined by newlines)
-	local selected_lines = {}
-	for line_no, cols in dn_utils.pairs_by_keys(region) do
-		-- in blockwise-visual mode ensure
-		-- all lines have correct start and end cols
-		if mode == C_v then
-			local cv_cols = { cs - 1, ce - 1 }
-			cols = cv_cols
-		end
-		local line = vim.fn.getline(line_no + 1)
-		local line_length = line:len() - 1
-		-- vim.region() returns -1 or -2
-		-- for end of line
-		if cols[2] < 0 then
-			cols[2] = line_length
-		end
-		-- get selected text in line and add to table
-		table.insert(selected_lines, line:sub(cols[1] + 1, cols[2] + 1))
-	end
+	-- get selected lines
+	local virt_edit = vim.wo.virtualedit
+	vim.wo.virtualedit = "none"
+	local selected_lines = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
+	vim.wo.virtualedit = virt_edit
+	-- provide result
 	return table.concat(selected_lines, "\n")
 end
 
