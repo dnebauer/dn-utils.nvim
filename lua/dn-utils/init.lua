@@ -1824,7 +1824,7 @@ function dn_utils.picker(items, on_select, prompt)
 	-- params
 	assert(type(items) == "table", "Expected list, got " .. type(items))
 	assert(vim.islist(items), "Expected list, got dict")
-	assert(vim.count(items) > 0, "Items list is empty")
+	assert(vim.tbl_count(items) > 0, "Items list is empty")
 	assert(type(on_select) == "function", "Expected function, got " .. type(on_select))
 	local default_prompt = "Select item"
 	prompt = prompt or default_prompt
